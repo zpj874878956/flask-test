@@ -4,6 +4,7 @@
 ## 1. 项目结构设计
 首先，让我们设计一个企业级的目录结构：
 flask-test/
+```bash
 ├── app/                    # 应用主目录
 │   ├── __init__.py         # 应用初始化
 │   ├── api/                # API 模块
@@ -40,6 +41,7 @@ flask-test/
 ├── .gitignore              # Git 忽略文件
 ├── requirements.txt        # 依赖包
 └── run.py                  # 应用入口
+```
 ## 2. 开发环境准备
 首先，让我们创建虚拟环境并安装必要的依赖：
 python -m venv venv
