@@ -1,28 +1,19 @@
-import os
 from flask import Flask
-from flask_sqlalchemy import SQLAlchemy
-from flask_migrate import Migrate
-from config import config
+from flask_cors import CORS
+from app.api import api_bp
 
-db = SQLAlchemy()
-migrate = Migrate()
-
-def create_app(config_name='default'):
+def create_app(config_class=None):
     app = Flask(__name__)
-    app.config.from_object(config[config_name])
-    config[config_name].init_app(app)
+    
+    # 配置应用
+    if config_class:
+        app.config.from_object(config_class)
     
     # 初始化扩展
-    db.init_app(app)
-    migrate.init_app(app, db)
+    # 添加CORS支持
+    CORS(app, resources={r"/api/*": {"origins": "*"}})
     
     # 注册蓝图
-    from app.api import api_bp
     app.register_blueprint(api_bp, url_prefix='/api/v1')
     
-    return app
-
-    # 创建上传目录
-    os.makedirs(os.path.join(app.static_folder, 'uploads'), exist_ok=True)
-
     return app
