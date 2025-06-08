@@ -1,5 +1,5 @@
 from datetime import datetime
-from app import db
+from app.extensions import db
 from app.models.version import Version
 
 class VersionService:

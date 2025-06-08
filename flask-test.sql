@@ -11,7 +11,7 @@ CREATE TABLE `files` (
 );
 
 
-CREATE TABLE `product` (
+CREATE TABLE `products` (
 	`id` INTEGER NOT NULL AUTO_INCREMENT UNIQUE,
 	`name` VARCHAR(255),
 	`description` TEXT(65535),
@@ -37,7 +37,7 @@ CREATE TABLE `users` (
 
 CREATE INDEX `users_index_0`
 ON `users` (`username`, `email`);
-CREATE TABLE `version` (
+CREATE TABLE `versions` (
 	`id` INTEGER NOT NULL AUTO_INCREMENT UNIQUE,
 	`version_number` VARCHAR(255),
 	`description` TEXT(65535),
