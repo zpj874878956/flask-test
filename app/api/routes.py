@@ -3,10 +3,19 @@ from app.api.resources.user import UserResource, UserListResource
 from app.api.resources.file import FileUploadResource, FileDownloadResource, FileListResource
 from app.api.resources.version import VersionResource, VersionListResource, VersionHistoryResource
 from app.api.resources.product import ProductResource, ProductListResource
+from app.api.resources.role import RoleResource, RoleListResource
+from app.api.resources.auth import LoginResource
+
+# 认证路由
+api_bp.add_url_rule('/auth/login', view_func=LoginResource.as_view('login'))
 
 # 用户资源路由
 api_bp.add_url_rule('/users', view_func=UserListResource.as_view('user_list'))
 api_bp.add_url_rule('/users/<int:user_id>', view_func=UserResource.as_view('user'))
+
+# 角色资源路由
+api_bp.add_url_rule('/roles', view_func=RoleListResource.as_view('role_list'))
+api_bp.add_url_rule('/roles/<int:role_id>', view_func=RoleResource.as_view('role'))
 
 # 文件资源路由
 api_bp.add_url_rule('/files/upload', view_func=FileUploadResource.as_view('file_upload'))

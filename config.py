@@ -6,6 +6,13 @@ load_dotenv()
 class Config:
     SECRET_KEY = os.environ.get('SECRET_KEY') or 'hard-to-guess-string'
     SQLALCHEMY_TRACK_MODIFICATIONS = False
+    
+    # CORS配置
+    CORS_ORIGINS = os.environ.get('CORS_ORIGINS', '*')
+    CORS_METHODS = ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS']
+    CORS_ALLOW_HEADERS = ['Content-Type', 'Authorization', 'Accept']
+    CORS_EXPOSE_HEADERS = ['Content-Type', 'X-Total-Count']
+    CORS_SUPPORTS_CREDENTIALS = True
 
     @staticmethod
     def init_app(app):

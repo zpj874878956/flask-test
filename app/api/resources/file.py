@@ -2,7 +2,7 @@ from flask import request, jsonify, send_file
 from flask.views import MethodView
 from app.services.file_service import FileService
 from app.models.version import Version
-from app import db
+from app.extensions import db
 import io
 
 class FileUploadResource(MethodView):

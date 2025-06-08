@@ -47,6 +47,8 @@ flask-test/
 python -m venv venv
 venv\Scripts\activate
 pip install flask flask-sqlalchemy flask-migrate flask-restful pymysql python-dotenv ftplib
+启动
+venv/Scripts/python.exe run.py
 ## 3. 创建项目基础结构
 让我们开始创建项目的基础结构：
 ### 3.1 创建主要目录

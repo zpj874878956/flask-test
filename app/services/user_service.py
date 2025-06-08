@@ -1,16 +1,20 @@
 from app.extensions import db
 from app.models.user import User
 from werkzeug.security import generate_password_hash, check_password_hash
+from datetime import datetime
 
 class UserService:
     @staticmethod
-    def create_user(username, email, password, is_admin=False):
+    def create_user(username, email, password, is_admin=False, role_id=None, department=None):
         """创建新用户"""
         user = User(
             username=username,
             email=email,
             password_hash=generate_password_hash(password),
-            is_admin=is_admin
+            is_admin=is_admin,
+            role_id=role_id,
+            department=department,
+            status=True
         )
         db.session.add(user)
         db.session.commit()
@@ -46,6 +50,12 @@ class UserService:
             user.password_hash = generate_password_hash(data['password'])
         if 'is_admin' in data:
             user.is_admin = data['is_admin']
+        if 'role_id' in data:
+            user.role_id = data['role_id']
+        if 'department' in data:
+            user.department = data['department']
+        if 'status' in data:
+            user.status = data['status']
         
         db.session.commit()
         return user
@@ -67,3 +77,23 @@ class UserService:
         if not user:
             return False
         return check_password_hash(user.password_hash, password)
+        
+    @staticmethod
+    def update_login_time(user_id):
+        """更新用户最后登录时间"""
+        user = User.query.get(user_id)
+        if user:
+            user.last_login_at = datetime.utcnow()
+            db.session.commit()
+            return True
+        return False
+        
+    @staticmethod
+    def get_users_by_role(role_id):
+        """获取指定角色的所有用户"""
+        return User.query.filter_by(role_id=role_id).all()
+        
+    @staticmethod
+    def get_users_by_department(department):
+        """获取指定部门的所有用户"""
+        return User.query.filter_by(department=department).all()

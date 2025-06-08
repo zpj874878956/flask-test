@@ -11,6 +11,10 @@ class User(db.Model):
     is_admin = db.Column(db.Boolean, default=False)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    status = db.Column(db.Boolean, default=True)  # 启用/禁用状态
+    role_id = db.Column(db.Integer, db.ForeignKey('roles.id'))  # 角色外键
+    department = db.Column(db.String(64))  # 部门
+    last_login_at = db.Column(db.DateTime)  # 最后登录时间
     
     # 关系
     versions = db.relationship('Version', backref='author', lazy='dynamic')
@@ -24,6 +28,11 @@ class User(db.Model):
             'username': self.username,
             'email': self.email,
             'is_admin': self.is_admin,
-            'created_at': self.created_at.isoformat(),
-            'updated_at': self.updated_at.isoformat()
+            'department': self.department,
+            'status': self.status,
+            'role_id': self.role_id,
+            'role_name': self.role.name if self.role else None,
+            'created_at': self.created_at.isoformat() if self.created_at else None,
+            'updated_at': self.updated_at.isoformat() if self.updated_at else None,
+            'last_login_at': self.last_login_at.isoformat() if self.last_login_at else None
         }
