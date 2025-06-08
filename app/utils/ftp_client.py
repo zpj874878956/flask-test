@@ -2,6 +2,7 @@ import os
 import ftplib
 from flask import current_app
 import uuid
+import traceback
 
 class FTPClient:
     def __init__(self):
@@ -11,25 +12,33 @@ class FTPClient:
         self.password = current_app.config['FTP_PASSWORD']
         self.directory = current_app.config['FTP_DIRECTORY']
         self.ftp = None
+        print(f"FTP配置: {self.host}:{self.port}, 用户名: {self.username}, 目录: {self.directory}")
     
     def connect(self):
         """连接到 FTP 服务器"""
         try:
+            print(f"正在连接FTP服务器 {self.host}:{self.port}...")
             self.ftp = ftplib.FTP()
             self.ftp.connect(self.host, self.port)
+            print(f"连接成功，正在登录...")
             self.ftp.login(self.username, self.password)
+            print(f"登录成功")
             
             # 尝试切换到指定目录，如果不存在则创建
             try:
                 self.ftp.cwd(self.directory)
-            except ftplib.error_perm:
+                print(f"已切换到目录: {self.directory}")
+            except ftplib.error_perm as e:
+                print(f"目录不存在，创建目录: {self.directory}, 错误: {str(e)}")
                 # 目录不存在，创建目录
                 self._create_directory_tree(self.directory)
                 self.ftp.cwd(self.directory)
+                print(f"目录创建成功并切换到: {self.directory}")
                 
             return True
         except Exception as e:
-            current_app.logger.error(f"FTP 连接错误: {str(e)}")
+            print(f"FTP 连接错误: {str(e)}")
+            traceback.print_exc()
             return False
     
     def _create_directory_tree(self, directory):
@@ -55,10 +64,13 @@ class FTPClient:
         if self.ftp:
             self.ftp.quit()
             self.ftp = None
+            print("FTP连接已断开")
     
     def upload_file(self, file_data, original_filename, version_id):
         """上传文件到 FTP 服务器"""
+        print(f"准备上传文件: {original_filename}, 版本ID: {version_id}")
         if not self.connect():
+            print("FTP连接失败，上传中止")
             return None
         
         try:
@@ -66,33 +78,64 @@ class FTPClient:
             version_dir = f"version_{version_id}"
             try:
                 self.ftp.cwd(version_dir)
+                print(f"已切换到版本目录: {version_dir}")
             except ftplib.error_perm:
+                print(f"版本目录不存在，创建: {version_dir}")
                 self.ftp.mkd(version_dir)
                 self.ftp.cwd(version_dir)
+                print(f"版本目录创建成功")
             
             # 生成唯一文件名
             file_ext = os.path.splitext(original_filename)[1]
             unique_filename = f"{uuid.uuid4().hex}{file_ext}"
+            print(f"生成唯一文件名: {unique_filename}")
             
             # 上传文件
+            print("开始上传文件...")
             self.ftp.storbinary(f'STOR {unique_filename}', file_data)
+            print("文件上传完成")
             
             # 返回文件路径
             file_path = f"{self.directory}/{version_dir}/{unique_filename}"
+            print(f"文件上传路径: {file_path}")
             return {
                 'filename': unique_filename,
                 'original_filename': original_filename,
                 'file_path': file_path
             }
         except Exception as e:
-            current_app.logger.error(f"文件上传错误: {str(e)}")
+            print(f"文件上传错误: {str(e)}")
+            traceback.print_exc()
             return None
         finally:
             self.disconnect()
     
+    @staticmethod
+    def _is_file_exists(ftp, filename):
+        """检查文件是否存在"""
+        try:
+            # 获取目录中的文件列表
+            files = []
+            ftp.retrlines('LIST', files.append)
+            print(f"目录中的文件列表: {files}")
+            
+            # 检查文件是否在列表中
+            for file_info in files:
+                if filename in file_info:
+                    print(f"文件 {filename} 存在于FTP服务器")
+                    return True
+            
+            print(f"文件 {filename} 不存在于FTP服务器")
+            return False
+        except Exception as e:
+            print(f"检查文件存在性时出错: {str(e)}")
+            return False
+    
     def download_file(self, file_path):
         """从 FTP 服务器下载文件"""
+        print(f"准备下载文件: {file_path}")
         if not self.connect():
+            print("FTP连接失败，下载中止")
             return None
         
         try:
@@ -100,22 +143,41 @@ class FTPClient:
             directory = os.path.dirname(file_path.replace(self.directory, '', 1))
             filename = os.path.basename(file_path)
             
+            print(f"文件目录: {directory}, 文件名: {filename}")
+            
             # 切换到文件所在目录
             if directory:
-                self.ftp.cwd(directory)
+                print(f"切换到目录: {directory}")
+                try:
+                    self.ftp.cwd(directory)
+                    print(f"已切换到目录: {directory}")
+                except ftplib.error_perm as e:
+                    print(f"目录不存在或无法访问: {directory}, 错误: {str(e)}")
+                    return None
+            
+            # 检查文件是否存在
+            if not self._is_file_exists(self.ftp, filename):
+                return None
             
             # 创建内存文件对象
             from io import BytesIO
             file_data = BytesIO()
             
             # 下载文件
-            self.ftp.retrbinary(f'RETR {filename}', file_data.write)
+            print(f"开始下载文件...")
+            try:
+                self.ftp.retrbinary(f'RETR {filename}', file_data.write)
+                print(f"文件下载完成")
+            except ftplib.error_perm as e:
+                print(f"下载文件时出错: {str(e)}")
+                return None
             
             # 将文件指针移到开始位置
             file_data.seek(0)
             return file_data
         except Exception as e:
-            current_app.logger.error(f"文件下载错误: {str(e)}")
+            print(f"文件下载错误: {str(e)}")
+            traceback.print_exc()
             return None
         finally:
             self.disconnect()

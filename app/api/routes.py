@@ -1,6 +1,6 @@
 from app.api import api_bp
 from app.api.resources.user import UserResource, UserListResource
-from app.api.resources.file import FileUploadResource, FileDownloadResource
+from app.api.resources.file import FileUploadResource, FileDownloadResource, FileListResource
 from app.api.resources.version import VersionResource, VersionListResource, VersionHistoryResource
 from app.api.resources.product import ProductResource, ProductListResource
 
@@ -11,6 +11,7 @@ api_bp.add_url_rule('/users/<int:user_id>', view_func=UserResource.as_view('user
 # 文件资源路由
 api_bp.add_url_rule('/files/upload', view_func=FileUploadResource.as_view('file_upload'))
 api_bp.add_url_rule('/files/download/<int:file_id>', view_func=FileDownloadResource.as_view('file_download'))
+api_bp.add_url_rule('/files', view_func=FileListResource.as_view('file_list'))
 
 # 产品资源路由
 api_bp.add_url_rule('/products', view_func=ProductListResource.as_view('product_list'))

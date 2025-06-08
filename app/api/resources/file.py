@@ -1,6 +1,8 @@
 from flask import request, jsonify, send_file
 from flask.views import MethodView
 from app.services.file_service import FileService
+from app.models.version import Version
+from app import db
 import io
 
 class FileUploadResource(MethodView):
@@ -20,6 +22,11 @@ class FileUploadResource(MethodView):
         
         if not version_id or not uploader_id:
             return jsonify({'error': '缺少必要参数: version_id 或 uploader_id'}), 400
+        
+        # 检查版本是否存在
+        version = Version.query.get(version_id)
+        if not version:
+            return jsonify({'error': f'版本ID {version_id} 不存在，请先创建版本'}), 404
         
         # 上传文件
         file_record = FileService.upload_file(
