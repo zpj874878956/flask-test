@@ -5,7 +5,7 @@ from datetime import datetime
 
 class UserService:
     @staticmethod
-    def create_user(username, email, password, is_admin=False, role_id=None, department=None):
+    def create_user(username, email, password, is_admin=False, role_id=None, department=None, name=None):
         """创建新用户"""
         user = User(
             username=username,
@@ -14,6 +14,7 @@ class UserService:
             is_admin=is_admin,
             role_id=role_id,
             department=department,
+            name=name,
             status=True
         )
         db.session.add(user)
@@ -56,6 +57,8 @@ class UserService:
             user.department = data['department']
         if 'status' in data:
             user.status = data['status']
+        if 'name' in data:
+            user.name = data['name']
         
         db.session.commit()
         return user

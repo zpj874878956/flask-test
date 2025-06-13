@@ -66,6 +66,7 @@ def upgrade():
         batch_op.create_foreign_key(None, 'versions', ['version_id'], ['id'])
 
     with op.batch_alter_table('users', schema=None) as batch_op:
+        batch_op.add_column(sa.Column('name', sa.String(length=64), nullable=True))
         batch_op.alter_column('username',
                existing_type=mysql.VARCHAR(length=255),
                type_=sa.String(length=64),
@@ -109,6 +110,7 @@ def downgrade():
                existing_type=sa.String(length=64),
                type_=mysql.VARCHAR(length=255),
                existing_nullable=True)
+        batch_op.drop_column('name')
 
     with op.batch_alter_table('files', schema=None) as batch_op:
         batch_op.drop_constraint(None, type_='foreignkey')

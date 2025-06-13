@@ -82,5 +82,3 @@ CREATE TABLE `roles` (
   UNIQUE KEY `name` (`name`),
   KEY `roles_index_0` (`name`)
 ) ENGINE=InnoDB AUTO_INCREMENT=6 DEFAULT CHARSET=utf8mb4;
-
-

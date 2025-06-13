@@ -50,7 +50,10 @@ class UserListResource(MethodView):
             username=data['username'],
             email=data['email'],
             password=data['password'],
-            is_admin=data.get('is_admin', False)
+            is_admin=data.get('is_admin', False),
+            name=data.get('name'),
+            role_id=data.get('role_id'),
+            department=data.get('department')
         )
         
         return jsonify(user.to_dict()), 201

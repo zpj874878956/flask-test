@@ -15,6 +15,7 @@ class User(db.Model):
     role_id = db.Column(db.Integer, db.ForeignKey('roles.id'))  # 角色外键
     department = db.Column(db.String(64))  # 部门
     last_login_at = db.Column(db.DateTime)  # 最后登录时间
+    name = db.Column(db.String(64))  # 姓名
     
     # 关系
     versions = db.relationship('Version', backref='author', lazy='dynamic')
@@ -26,6 +27,7 @@ class User(db.Model):
         return {
             'id': self.id,
             'username': self.username,
+            'name': self.name,
             'email': self.email,
             'is_admin': self.is_admin,
             'department': self.department,
