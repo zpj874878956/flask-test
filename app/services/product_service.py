@@ -3,13 +3,14 @@ from app.models.product import Product
 
 class ProductService:
     @staticmethod
-    def create_product(name, description, code, status='active'):
+    def create_product(name, description, code, status='active', owner_id=None):
         """创建新产品"""
         product = Product(
             name=name,
             description=description,
             code=code,
-            status=status
+            status=status,
+            owner_id=owner_id
         )
         
         db.session.add(product)

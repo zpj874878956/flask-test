@@ -12,6 +12,7 @@ class Version(db.Model):
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
     released_at = db.Column(db.DateTime)
+    lock_status = db.Column(db.Boolean, default=False)  # 锁定状态
     
     # 外键
     product_id = db.Column(db.Integer, db.ForeignKey('products.id'), nullable=False)
@@ -35,5 +36,6 @@ class Version(db.Model):
             'created_at': self.created_at.isoformat(),
             'updated_at': self.updated_at.isoformat(),
             'released_at': self.released_at.isoformat() if self.released_at else None,
-            'file_count': self.files.count()
+            'file_count': self.files.count(),
+            'lock_status': self.lock_status
         }

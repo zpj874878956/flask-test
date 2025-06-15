@@ -30,9 +30,12 @@ CREATE TABLE `products` (
 ) ENGINE=InnoDB AUTO_INCREMENT=4 DEFAULT CHARSET=utf8mb4;
 
 
+-- version_test.users definition
+
 CREATE TABLE `users` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `username` varchar(64) DEFAULT NULL,
+  `name` varchar(32) DEFAULT NULL,
   `email` varchar(120) DEFAULT NULL,
   `password_hash` varchar(128) DEFAULT NULL,
   `is_admin` tinyint(1) DEFAULT NULL,
@@ -48,7 +51,7 @@ CREATE TABLE `users` (
   KEY `fk_users_role_id` (`role_id`),
   KEY `users_index_0` (`username`,`email`),
   CONSTRAINT `fk_users_role_id` FOREIGN KEY (`role_id`) REFERENCES `roles` (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=6 DEFAULT CHARSET=utf8mb4;
+) ENGINE=InnoDB AUTO_INCREMENT=11 DEFAULT CHARSET=utf8mb4;
 
 
 
@@ -82,3 +85,12 @@ CREATE TABLE `roles` (
   UNIQUE KEY `name` (`name`),
   KEY `roles_index_0` (`name`)
 ) ENGINE=InnoDB AUTO_INCREMENT=6 DEFAULT CHARSET=utf8mb4;
+
+CREATE TABLE user_product_permissions (
+    id INT PRIMARY KEY AUTO_INCREMENT,
+    user_id INT NOT NULL,
+    product_id INT NOT NULL,
+    permission_type VARCHAR(20) NOT NULL, -- 只读: read，编辑: edit，管理: admin
+    FOREIGN KEY (user_id) REFERENCES users(id),
+    FOREIGN KEY (product_id) REFERENCES products(id)
+);

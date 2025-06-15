@@ -4,6 +4,7 @@ from app.services.file_service import FileService
 from app.models.version import Version
 from app.extensions import db
 import io
+import mimetypes
 
 class FileUploadResource(MethodView):
     def post(self):
@@ -49,9 +50,12 @@ class FileDownloadResource(MethodView):
         if not result:
             return jsonify({'error': '文件不存在或下载失败'}), 404
         
+        # 根据文件类型获取正确的MIME类型
+        mime_type = mimetypes.guess_type(result['filename'])[0] or f'application/octet-stream'
+        
         return send_file(
             io.BytesIO(result['file_data'].read()),
-            mimetype=f'application/{result["file_type"]}',
+            mimetype=mime_type,
             as_attachment=True,
             download_name=result['filename']
         )
@@ -66,3 +70,11 @@ class FileListResource(MethodView):
         
         files = FileService.get_files_by_version(version_id)
         return jsonify([file.to_dict() for file in files])
+
+class FileDeleteResource(MethodView):
+    def delete(self, file_id):
+        success = FileService.delete_file(file_id)
+        if success:
+            return jsonify({'success': True, 'message': '文件删除成功'})
+        else:
+            return jsonify({'error': '文件不存在'}), 404

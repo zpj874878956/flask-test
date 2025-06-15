@@ -85,21 +85,24 @@ class FTPClient:
                 self.ftp.cwd(version_dir)
                 print(f"版本目录创建成功")
             
-            # 生成唯一文件名
-            file_ext = os.path.splitext(original_filename)[1]
-            unique_filename = f"{uuid.uuid4().hex}{file_ext}"
-            print(f"生成唯一文件名: {unique_filename}")
+            # 检查并生成不重复的文件名
+            name, ext = os.path.splitext(original_filename)
+            filename = original_filename
+            counter = 1
+            while self._is_file_exists(self.ftp, filename):
+                filename = f"{name}{counter}{ext}"
+                counter += 1
             
             # 上传文件
             print("开始上传文件...")
-            self.ftp.storbinary(f'STOR {unique_filename}', file_data)
+            self.ftp.storbinary(f'STOR {filename}', file_data)
             print("文件上传完成")
             
             # 返回文件路径
-            file_path = f"{self.directory}/{version_dir}/{unique_filename}"
+            file_path = f"{self.directory}/{version_dir}/{filename}"
             print(f"文件上传路径: {file_path}")
             return {
-                'filename': unique_filename,
+                'filename': filename,
                 'original_filename': original_filename,
                 'file_path': file_path
             }
@@ -139,14 +142,13 @@ class FTPClient:
             return None
         
         try:
-            # 提取目录和文件名
-            directory = os.path.dirname(file_path.replace(self.directory, '', 1))
+            # 提取相对于self.directory的子目录
+            rel_path = os.path.relpath(file_path, self.directory)
+            directory = os.path.dirname(rel_path)
             filename = os.path.basename(file_path)
-            
-            print(f"文件目录: {directory}, 文件名: {filename}")
-            
+            print(f"相对目录: {directory}, 文件名: {filename}")
             # 切换到文件所在目录
-            if directory:
+            if directory and directory != '.':
                 print(f"切换到目录: {directory}")
                 try:
                     self.ftp.cwd(directory)
@@ -154,15 +156,12 @@ class FTPClient:
                 except ftplib.error_perm as e:
                     print(f"目录不存在或无法访问: {directory}, 错误: {str(e)}")
                     return None
-            
             # 检查文件是否存在
             if not self._is_file_exists(self.ftp, filename):
                 return None
-            
             # 创建内存文件对象
             from io import BytesIO
             file_data = BytesIO()
-            
             # 下载文件
             print(f"开始下载文件...")
             try:
@@ -171,7 +170,6 @@ class FTPClient:
             except ftplib.error_perm as e:
                 print(f"下载文件时出错: {str(e)}")
                 return None
-            
             # 将文件指针移到开始位置
             file_data.seek(0)
             return file_data
@@ -179,5 +177,35 @@ class FTPClient:
             print(f"文件下载错误: {str(e)}")
             traceback.print_exc()
             return None
+        finally:
+            self.disconnect()
+
+    def delete_file(self, file_path):
+        """从FTP服务器删除文件"""
+        print(f"准备删除FTP文件: {file_path}")
+        if not self.connect():
+            print("FTP连接失败，删除中止")
+            return False
+        try:
+            # 提取相对于self.directory的子目录
+            rel_path = os.path.relpath(file_path, self.directory)
+            directory = os.path.dirname(rel_path)
+            filename = os.path.basename(file_path)
+            print(f"相对目录: {directory}, 文件名: {filename}")
+            # 切换到文件所在目录
+            if directory and directory != '.':
+                try:
+                    self.ftp.cwd(directory)
+                    print(f"已切换到目录: {directory}")
+                except ftplib.error_perm as e:
+                    print(f"目录不存在或无法访问: {directory}, 错误: {str(e)}")
+                    return False
+            # 删除文件
+            self.ftp.delete(filename)
+            print(f"FTP文件已删除: {filename}")
+            return True
+        except Exception as e:
+            print(f"FTP删除文件失败: {str(e)}")
+            return False
         finally:
             self.disconnect()

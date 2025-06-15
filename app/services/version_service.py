@@ -4,7 +4,7 @@ from app.models.version import Version
 
 class VersionService:
     @staticmethod
-    def create_version(product_id, version_number, description, release_notes, author_id, status='draft'):
+    def create_version(product_id, version_number, description, release_notes, author_id, status='draft', lock_status=False):
         """创建新版本"""
         version = Version(
             product_id=product_id,
@@ -12,7 +12,8 @@ class VersionService:
             description=description,
             release_notes=release_notes,
             author_id=author_id,
-            status=status
+            status=status,
+            lock_status=lock_status
         )
         
         db.session.add(version)
@@ -85,3 +86,11 @@ class VersionService:
         db.session.delete(version)
         db.session.commit()
         return True
+    
+    @staticmethod
+    def get_all_versions(page=1, per_page=20, status=None):
+        """获取所有版本，支持分页和状态过滤"""
+        query = Version.query
+        if status:
+            query = query.filter_by(status=status)
+        return query.order_by(Version.created_at.desc()).paginate(page=page, per_page=per_page)
